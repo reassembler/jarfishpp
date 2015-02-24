@@ -6,8 +6,6 @@
 #include <sys/stat.h>
 #include <errno.h>
 
-#include "zlib.h"
-
 #include "util.h"
 
 
@@ -62,9 +60,9 @@ void dumpArchive(string fileName)
 {
     cout << "dumping: " << fileName << endl;
 
-    FILE *file = fopen(fileName.c_str(), "rBR");
 
-    if (file) {
+/*
+    if (zipFile) {
         cout << " file open" << endl;
 
         int ret, flush;
@@ -88,9 +86,11 @@ void dumpArchive(string fileName)
             cout << "ITS OK" << endl;
         }
 
+        inflateEnd(&strm);
 
-        fclose(file);
+        gzclose(zipFile);
     }
+    */
 }
 
 void Util::listDirectory(string path) 
