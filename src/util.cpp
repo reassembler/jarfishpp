@@ -1,6 +1,7 @@
 #include <vector>
 #include <string>
 
+#include <stdio.h>
 #include <dirent.h>
 #include <sys/stat.h>
 #include <errno.h>
