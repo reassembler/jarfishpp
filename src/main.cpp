@@ -12,9 +12,7 @@
 #define PWDS string("..")
 
 
-
 using namespace std;
-
 
 
 int main(int argc, char* argv[]) 
@@ -22,6 +20,8 @@ int main(int argc, char* argv[])
     vector <string> queries;
     vector <string> paths;
     string destination;
+
+    Util util = Util();
 
     for (int i = 1; i < argc; i++) {
         string arg = string(argv[i]);
@@ -61,7 +61,7 @@ int main(int argc, char* argv[])
         // EARLY OUT
     }
 
-    Util::scan(paths);
+    util.scan(paths);
 
     return 0;
 }

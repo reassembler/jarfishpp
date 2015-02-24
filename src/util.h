@@ -17,10 +17,19 @@ const char kPathSeparator =
 using namespace std;
 
 class Util {
+    private: 
+      bool isArchive(string path);
+      bool isDirectory(string path);
+
     public:
-      static bool isDirectory(string path);
-      static void listDirectory(std::string path);
-      static void scan(std::vector<std::string> paths);
+      vector<string> extensions;
+
+      void listDirectory(std::string path);
+      void scan(std::vector<std::string> paths);
+
+      Util() {
+          extensions.push_back(".jar");
+      }
 };
 
 #endif
