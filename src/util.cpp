@@ -6,7 +6,7 @@
 #include <sys/stat.h>
 #include <errno.h>
 
-#include "util.h"
+#include "util.hpp"
 
 #include "miniz.c"
 
