@@ -107,7 +107,6 @@ void Util::searchArchive(string fileName)
             if (!mz_zip_reader_file_stat(&zip_archive, i, &file_stat)) {
                 printf("mz_zip_reader_file_stat() failed!\n");
                 mz_zip_reader_end(&zip_archive);
-              //return EXIT_FAILURE;
             }
 
             string entryName = string(file_stat.m_filename);
@@ -126,20 +125,9 @@ void Util::searchArchive(string fileName)
                     }
                 }
             }
-
-        /*
-        if (!strcmp(file_stat.m_filename, "directory/")) {
-          if (!mz_zip_reader_is_file_a_directory(&zip_archive, i)) {
-            printf("mz_zip_reader_is_file_a_directory() didn't return the expected results!\n");
-            mz_zip_reader_end(&zip_archive);
-            return EXIT_FAILURE;
-          }
         }
-        */
-      }
 
-      // Close the archive, freeing any resources it was using
-      mz_zip_reader_end(&zip_archive);
+        mz_zip_reader_end(&zip_archive);
     }
     else {
         cout << "could not open archive: " << fileName << endl;

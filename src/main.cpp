@@ -25,7 +25,7 @@ int main(int argc, char* argv[])
     for (int i = 1; i < argc; i++) {
         string arg = string(argv[i]);
 
-        if (string(argv[i]) == "--find") {
+        if (string(argv[i]) == "--findc") {
             if ((i + 1) < argc) {
                 util.addQuery(argv[i + 1]);
                 i++;
