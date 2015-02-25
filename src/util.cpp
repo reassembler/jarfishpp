@@ -52,13 +52,36 @@ bool endsWith(string s, string test)
     return false;
 }
 
+string normalizeClassName(string fileName) {
+    string str = "";
+
+    for(int i = 0; i < fileName.size(); i++) {
+        const char ch = fileName[i];
+
+        if (ch == '/') {
+            str.push_back('.');
+        }
+        else {
+            str.push_back(ch);
+        }
+    }
+
+    return str;
+    
+}
+
 vector<Hit> Util::matchesQuery(string test)
 {
     vector<Hit> hits;
 
+    string normalName = normalizeClassName(test);
+
+    bool checkNormalized = normalName != test;
+
     for (vector<string>::iterator it = queries.begin(); it != queries.end(); ++it) {
         string query = *it;
-        if (test.find(query) != string::npos) {
+        if (test.find(query) != string::npos
+                || (checkNormalized && normalName.find(query) != string::npos)) {
             hits.push_back(Hit());
 
             hits.back().name = test;
@@ -99,6 +122,7 @@ void Util::searchArchive(string fileName)
     status = mz_zip_reader_init_file(&zip_archive, fileName.c_str(), 0);
 
     if (status) {
+        bool emitFileName = true;
         int fileCount = (int) mz_zip_reader_get_num_files(&zip_archive);
 
         for (i = 0; i < fileCount; i++) {
@@ -120,7 +144,13 @@ void Util::searchArchive(string fileName)
 
                         this->hits.push_back(hits[i]);
 
-                        cout << hits[i].context << endl;
+                        if (emitFileName) {
+                            // only show the file name once per file
+                            cout << hits[i].context << endl;
+
+                            emitFileName = false;
+                        }
+
                         cout << "    " << hits[i].name << endl;
                     }
                 }

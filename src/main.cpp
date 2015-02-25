@@ -8,6 +8,8 @@
 
 #include "util.h"
 
+#include "usage.cpp"
+
 #define CWDS string(".")
 #define PWDS string("..")
 
@@ -31,7 +33,12 @@ int main(int argc, char* argv[])
                 i++;
             }
             else {
-                cerr << "'find' command requires at least one argument." << endl;
+                
+                show_usage("'find' command requires at least one argument.");
+
+                return 1;
+
+                // EARLY OUT
             }
         }
         else {
@@ -40,20 +47,26 @@ int main(int argc, char* argv[])
     }
 
     if (!util.hasQuery()) {
-        cerr << "At least one query is required." << endl;
+        show_usage("At least one query is required.");
 
         return 1;
+        
         // EARLY OUT
     }
 
     if (paths.size() == 0) {
-        cerr << "At least one path is required." << endl;
+        show_usage("At least one path is required.");
 
         return 1;
         // EARLY OUT
     }
 
+
     util.scan(paths);
+
+    if (util.hitCount() == 0) {
+        cout << "Nothing found" << endl;
+    }
 
     return 0;
 }

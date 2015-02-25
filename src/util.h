@@ -32,6 +32,10 @@ class Util {
     public:
       vector<string> extensions;
 
+      int hitCount() {
+          return hits.size();
+      }    
+
       void listDirectory(std::string path);
       void scan(std::vector<std::string> paths);
 
