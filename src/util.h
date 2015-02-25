@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include "hit.h"
 
 const char kPathSeparator =
 #ifdef _WIN32
@@ -20,12 +21,27 @@ class Util {
     private: 
       bool isArchive(string path);
       bool isDirectory(string path);
+      vector<Hit> matchesQuery(string test);
+      void searchArchive(string fileName);
+
+      vector<string> queries;
+
+      vector<Hit> hits;
+
 
     public:
       vector<string> extensions;
 
       void listDirectory(std::string path);
       void scan(std::vector<std::string> paths);
+
+      void addQuery(string query) {
+          queries.push_back(query);
+      }
+
+      bool hasQuery() {
+          return queries.size() > 0;
+      }    
 
       Util() {
           extensions.push_back(".jar");

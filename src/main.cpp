@@ -17,7 +17,6 @@ using namespace std;
 
 int main(int argc, char* argv[]) 
 {
-    vector <string> queries;
     vector <string> paths;
     string destination;
 
@@ -28,7 +27,7 @@ int main(int argc, char* argv[])
 
         if (string(argv[i]) == "--find") {
             if ((i + 1) < argc) {
-                queries.push_back(argv[i + 1]);
+                util.addQuery(argv[i + 1]);
                 i++;
             }
             else {
@@ -40,14 +39,7 @@ int main(int argc, char* argv[])
         }
     }
 
-    if (queries.size() > 0) {
-        cout << "Searching for: " << endl;
-
-        for (vector<string>::iterator it = queries.begin(); it != queries.end(); ++it) {
-            cout << "  " << *it << endl;
-        }
-    }
-    else {
+    if (!util.hasQuery()) {
         cerr << "At least one query is required." << endl;
 
         return 1;

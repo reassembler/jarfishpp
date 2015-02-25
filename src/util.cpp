@@ -52,6 +52,22 @@ bool endsWith(string s, string test)
     return false;
 }
 
+vector<Hit> Util::matchesQuery(string test)
+{
+    vector<Hit> hits;
+
+    for (vector<string>::iterator it = queries.begin(); it != queries.end(); ++it) {
+        string query = *it;
+        if (test.find(query) != string::npos) {
+            hits.push_back(Hit());
+
+            hits.back().name = test;
+        }    
+    }
+        
+    return hits;
+}
+
 
 bool Util::isArchive(string path)
 {
@@ -66,10 +82,9 @@ bool Util::isArchive(string path)
     return false;
 }
 
-void dumpArchive(string fileName) 
-{
-    cout << "dumping: " << fileName << endl;
 
+void Util::searchArchive(string fileName) 
+{
     int i, sort_iter;
     mz_bool status;
     size_t uncomp_size;
@@ -95,8 +110,21 @@ void dumpArchive(string fileName)
               //return EXIT_FAILURE;
             }
 
-            if (endsWith(string(file_stat.m_filename), ".class")) {
-                cout << "found class: \"" << file_stat.m_filename << endl;
+            string entryName = string(file_stat.m_filename);
+
+            if (endsWith(entryName, ".class")) {
+                vector<Hit> hits = matchesQuery(entryName);
+
+                if (hits.size() > 0) {
+                    for (int i = 0; i < hits.size(); i++) {
+                        hits[i].context = fileName;
+
+                        this->hits.push_back(hits[i]);
+
+                        cout << hits[i].context << endl;
+                        cout << "    " << hits[i].name << endl;
+                    }
+                }
             }
 
         /*
@@ -123,8 +151,6 @@ void Util::listDirectory(string path)
     DIR *dp;
     struct dirent *dirp;
 
-    cout << "  '" << path << "'" << endl;
-
     dp = opendir(path.c_str());
 
     if (dp != NULL) {
@@ -136,13 +162,15 @@ void Util::listDirectory(string path)
                     listDirectory(searchPath);
                 }
                 else if(isArchive(searchPath) == true) {
-                    dumpArchive(searchPath);
+                    searchArchive(searchPath);
                 }
             }
         }
+
+        closedir(dp);
     }
     else {
-        cout << "Couldn't open dir: '" << path << "' error: " << errno << endl;
+        cerr << "Couldn't open dir: '" << path << "' error: " << strerror(errno) << endl;
     }
 }
 
