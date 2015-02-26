@@ -7,121 +7,184 @@
 
 using namespace std;
 
-class PoolValue {
-  public:
-      int poolIndex;
-      int type;
 
-      unsigned char *data;
-};
-
-      
-
-
-
-
-
-int readU2(istream& in) 
+unsigned int readU2(istream& in) 
 {
-    unsigned int t;
-
-    t = in.get();
-
-    t = t << 8;
+    unsigned int t = in.get() << 8;
 
     t = t | in.get();
 
     return t;
 }
 
-/*
+unsigned long readU4(istream& in) 
+{
+    unsigned long t = in.get() << 24;
 
-Object readValue(int type, DataInputStream din) throws IOException {
-        switch (type) {
-        case 7:
-            // CONSTANT_Class 7
-            // the value is the index of the class name in the constant pool
-            return new Integer(readU2(din));
+    t = t | (in.get() << 16);
+    t = t | (in.get() << 8);
+    t = t | in.get();
 
-        case 9:
-            // CONSTANT_Fieldref 9
-        case 10:
-            // CONSTANT_Methodref 10
-        case 11:
-            // CONSTANT_InterfaceMethodref 11
-        case 12:
-            // CONSTANT_NameAndType 12
-            
-            readU2(din);
-            readU2(din);
-            break;
+    return t;
+}
 
-        case 8:
-            // CONSTANT_String 8
-            return new Integer(readU2(din));
 
-        case 3:
-            // CONSTANT_Integer 3
-        case 4:
-            // CONSTANT_Float 4
-            readU4(din);
-            break;
 
-        case 5:
-            // CONSTANT_Long 5
-        case 6:
-            // CONSTANT_Double 6
-            readU4(din);
-            readU4(din);
-            break;
+string readUtf(istream& in) {
+    int length = readU2(in);
 
-        case 1:
-            // CONSTANT_Utf8 1
-            String val = din.readUTF();
-            return val;
+    stringstream ss;
 
-        default:
-            return null;
+    for (int i = 0; i < length; i++) {
+        // read byte group
+        // first byte
+        unsigned char ch = in.get();
 
+        if ((ch & 128) == 0) {
+            // 0xxxxxxx one byte group
+            ss << ch;
         }
-        
-        return null;
+        else if ((ch >> 5) == 6) {
+            // 110xxxxx two-byte group
+            ss << "X";
+            in.get();
+            i++;
+        }
+        else if ((ch >> 4) == 14) {
+            // 1110xxxx three-byte group
+            ss << "X";
+            in.get();
+            in.get();
+
+            i++;
+            i++;
+        }
     }
 
+    return ss.str();
+}
 
-*/
+string ClassParser::readClassName(istream& in)
+{
+    int poolIndex = readU2(in);
 
+    cout << "trace " << poolIndex << endl;
+    cout << "trace " << pool.size() << endl;
+    
+    PoolValue pv = pool.at(poolIndex);
 
-int ClassParser::readConstantPoolSize(istream& in) 
+    PoolValue *ppv = &pv;
+
+    if (ppv == NULL ) {
+        cout << "ITS NULL" << endl;
+    }
+
+    //cout << "PPV: " << ppv << endl;
+    ClassValue* pcv = static_cast<ClassValue*>(ppv);
+
+    if (pcv != NULL) {
+
+    int i = pcv->nameIndex;
+    cout << "trace A" << endl;
+
+    cout << "index: " << i << endl;
+    }
+
+    return string("HELLO");
+
+}
+
+int ClassParser::readConstantPool(istream& in) 
 {
         int cpSize = readU2(in) - 1;
 
-        vector<string> entries;
         for (int i = 0; i < cpSize; i++) {
             int type = in.get();
+
+            //cout << "index: " << i << " ";
+
+            switch (type) {
+
+            case CONSTANT_CLASS: {
+                // the value is the index of the class name in the constant pool
+                ClassValue cv = ClassValue();
+                pool.push_back(cv);
+
+                cv.nameIndex = readU2(in);
+
+                cout << "INDEXCC: " << cv.nameIndex << endl;
+            }
+            //cout << "Class" << endl;
+            break;
+
+            case CONSTANT_FIELD_REF:
+            //cout << "Field Ref" << endl;
+            case CONSTANT_METHOD_REF:
+            //cout << "Method Ref" << endl;
+            case CONSTANT_INTERFACE_METHOD_REF:
+            //cout << "Interface Method Ref" << endl;
+            case CONSTANT_NAME_AND_TYPE: {
+            //cout << "Name And Type" << endl;
+                RefValue v = RefValue(type);
+                pool.push_back(v);
+                v.classIndex = readU2(in);
+                v.nameAndTypeIndex = readU2(in);
+            }
+            break;
+
+            case CONSTANT_STRING_INFO: {
+            //cout << "String Info" << endl;
+                // index of string in constant pool
+                StringInfoValue v = StringInfoValue();
+                pool.push_back(v);
+
+                v.stringIndex = readU2(in);
+            }
+            break;
+
+            // skipping these values
+            case CONSTANT_INTEGER:
+            //cout << "Integer Info" << endl;
+            case CONSTANT_FLOAT:
+            //cout << "Float Info" << endl;
+                pool.push_back(PoolValue(type));
+
+                readU4(in);
+                break;
+
+            // skipping these values
+            case CONSTANT_LONG:
+            //cout << "Long Info" << endl;
+            case CONSTANT_DOUBLE:
+            //cout << "Double Info" << endl;
+                pool.push_back(PoolValue(type));
+
+                readU4(in);
+                readU4(in);
+                break;
+
+            case CONSTANT_UTF8: {
+            //cout << "UTF8" << endl;
+                Utf8Value v = Utf8Value();
+                pool.push_back(v);
+
+                v.value = readUtf(in);
+
+                //cout << "UTF8: " << v.value;
+            }
+            break;
+
+            default:
+                cout << "Unknown type: " << type << endl;
+                // dont' know what it is, things will go badly after this
+                cerr << "reached unknown data in constant pool. We should quit now." << endl;
+                break;
+            }
+
+            //cout << endl;
         }    
 
-
-
-/*
-            Object value = readValue(type, din);
-            entries.add(new ConstantEntry(type, value));
-            
-            String typeName = ConstantEntry.NAMES[type];
-            if (typeName.equals("CONSTANT_Long") || typeName.equals("CONSTANT_Double")) {
-                // skip phantom entries for long and double
-                entries.add(new ConstantEntry(0, null));
-                i++; 
-            }
-        }
-        
-        cm.setEntries(entries);
-
-*/
-    return cpSize;
-
-
-
+    return pool.size();
 }
 
 void ClassParser::readVersion(istream& in, string& version)

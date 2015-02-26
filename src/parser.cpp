@@ -35,7 +35,11 @@ int main(int argc, char **argv)
 
             cout << "version: " << version << endl;
 
-            cout << "constant pool size: " << parser.readConstantPoolSize(in) << endl;
+            cout << "constant pool size: " << parser.readConstantPool(in) << endl;
+
+            cout << "Access flags: " << parser.readAccessFlags(in) << endl;
+
+            cout << "class name: " << parser.readClassName(in) << endl;
         }
         else {
             cout << "no sig" << endl;
