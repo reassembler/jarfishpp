@@ -7,6 +7,20 @@
 
 using namespace std;
 
+class PoolValue {
+  public:
+      int poolIndex;
+      int type;
+
+      unsigned char *data;
+};
+
+      
+
+
+
+
+
 int readU2(istream& in) 
 {
     unsigned int t;
