@@ -34,6 +34,8 @@ int main(int argc, char **argv)
             parser.readVersion(in, version);
 
             cout << "version: " << version << endl;
+
+            cout << "constant pool size: " << parser.readConstantPoolSize(in) << endl;
         }
         else {
             cout << "no sig" << endl;
