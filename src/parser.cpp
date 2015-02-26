@@ -10,7 +10,7 @@ int main(int argc, char **argv)
 {
 
     if (argc == 1) {
-        cerr << "no files supplied" << endl;
+        cerr << "no input files" << endl;
         return 1;
         //EARLY OUT
     }
