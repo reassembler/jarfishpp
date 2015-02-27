@@ -27,22 +27,10 @@ int main(int argc, char **argv)
         ClassParser parser = ClassParser();
 
         if (parser.testSig(in)) {
-            cout << "sig matched" << endl;
-
-            string version;
-
-            parser.readVersion(in, version);
-
-            cout << "version: " << version << endl;
-
-            cout << "constant pool size: " << parser.readConstantPool(in) << endl;
-
-            cout << "Access flags: " << parser.readAccessFlags(in) << endl;
-
-            cout << "class name: " << parser.readClassName(in) << endl;
-        }
-        else {
-            cout << "no sig" << endl;
+            parser.parseAll(in);
+            std::cout << parser.version << std::endl;
+            std::cout << parser.className << std::endl;
+            std::cout << parser.superClassName << std::endl;
         }
 
         in.close();

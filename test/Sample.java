@@ -1,3 +1,5 @@
+package org.assembler.runner;
+
 public class Sample {
     private String name;
 

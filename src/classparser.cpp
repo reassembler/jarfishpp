@@ -5,10 +5,9 @@
 
 #include "classparser.hpp"
 
-using namespace std;
 
 
-unsigned int readU2(istream& in) 
+unsigned int readU2(std::istream& in) 
 {
     unsigned int t = in.get() << 8;
 
@@ -17,7 +16,7 @@ unsigned int readU2(istream& in)
     return t;
 }
 
-unsigned long readU4(istream& in) 
+unsigned long readU4(std::istream& in) 
 {
     unsigned long t = in.get() << 24;
 
@@ -29,18 +28,17 @@ unsigned long readU4(istream& in)
 }
 
 
-
-string readUtf(istream& in) {
+std::string readUtf(std::istream& in) {
     int length = readU2(in);
 
-    stringstream ss;
+    std::stringstream ss;
 
     for (int i = 0; i < length; i++) {
         // read byte group
         // first byte
         unsigned char ch = in.get();
 
-        if ((ch & 128) == 0) {
+        if ((ch >> 7) == 0) {
             // 0xxxxxxx one byte group
             ss << ch;
         }
@@ -64,130 +62,164 @@ string readUtf(istream& in) {
     return ss.str();
 }
 
-string ClassParser::readClassName(istream& in)
-{
-    int poolIndex = readU2(in);
 
-    cout << "trace " << poolIndex << endl;
-    cout << "trace " << pool.size() << endl;
-    
-    PoolValue pv = pool.at(poolIndex);
+ClassParser::~ClassParser() {
+    std::cout << "delete\n";
 
-    PoolValue *ppv = &pv;
+    int n = pool.size();
 
-    if (ppv == NULL ) {
-        cout << "ITS NULL" << endl;
+    for (int i = 0; i < n; i++) {
+        if (pool[i] != NULL) {
+            delete pool[i];
+        }
     }
-
-    //cout << "PPV: " << ppv << endl;
-    ClassValue* pcv = static_cast<ClassValue*>(ppv);
-
-    if (pcv != NULL) {
-
-    int i = pcv->nameIndex;
-    cout << "trace A" << endl;
-
-    cout << "index: " << i << endl;
-    }
-
-    return string("HELLO");
-
 }
 
-int ClassParser::readConstantPool(istream& in) 
+
+PoolValue* ClassParser::getPoolValue(int i) 
+{
+    return pool.at(i - 1);
+}
+
+
+std::string ClassParser::readClassName(std::istream& in)
+{
+    std::string cname("NAME NOT FOUND");
+
+    int poolIndex = readU2(in);
+
+    PoolValue *pv = getPoolValue(poolIndex);
+
+    ClassValue* cv = dynamic_cast<ClassValue*>(pv);
+
+    if (cv != NULL) {
+        int i = cv->nameIndex;
+    
+        Utf8Value* name = dynamic_cast<Utf8Value*>(getPoolValue(i));
+
+        if (name != NULL) {
+            cname = name->value;
+        }
+    }
+
+    return cname;
+}
+
+
+std::string ClassParser::readSuperClassName(std::istream& in)
+{
+    std::string cname("NAME NOT FOUND");
+
+    int poolIndex = readU2(in);
+
+    PoolValue *pv = getPoolValue(poolIndex);
+
+    ClassValue* cv = dynamic_cast<ClassValue*>(pv);
+
+    if (cv != NULL) {
+        int i = cv->nameIndex;
+    
+        Utf8Value* name = dynamic_cast<Utf8Value*>(getPoolValue(i));
+
+        if (name != NULL) {
+            cname = name->value;
+        }
+    }
+
+    return cname;
+}
+
+
+int ClassParser::readConstantPool(std::istream& in) 
 {
         int cpSize = readU2(in) - 1;
 
         for (int i = 0; i < cpSize; i++) {
             int type = in.get();
 
-            //cout << "index: " << i << " ";
-
             switch (type) {
 
             case CONSTANT_CLASS: {
                 // the value is the index of the class name in the constant pool
-                ClassValue cv = ClassValue();
+                ClassValue* cv = new ClassValue();
                 pool.push_back(cv);
 
-                cv.nameIndex = readU2(in);
-
-                cout << "INDEXCC: " << cv.nameIndex << endl;
+                cv->nameIndex = readU2(in);
             }
-            //cout << "Class" << endl;
             break;
 
             case CONSTANT_FIELD_REF:
-            //cout << "Field Ref" << endl;
+            //std::cout << "Field Ref" << std::endl;
             case CONSTANT_METHOD_REF:
-            //cout << "Method Ref" << endl;
+            //std::cout << "Method Ref" << std::endl;
             case CONSTANT_INTERFACE_METHOD_REF:
-            //cout << "Interface Method Ref" << endl;
+            //std::cout << "Interface Method Ref" << std::endl;
             case CONSTANT_NAME_AND_TYPE: {
-            //cout << "Name And Type" << endl;
-                RefValue v = RefValue(type);
+            //std::cout << "Name And Type" << std::endl;
+                RefValue* v = new RefValue(type);
                 pool.push_back(v);
-                v.classIndex = readU2(in);
-                v.nameAndTypeIndex = readU2(in);
+                v->classIndex = readU2(in);
+                v->nameAndTypeIndex = readU2(in);
             }
             break;
 
             case CONSTANT_STRING_INFO: {
-            //cout << "String Info" << endl;
-                // index of string in constant pool
-                StringInfoValue v = StringInfoValue();
+            //std::cout << "String Info" << std::endl;
+                // index of std::string in constant pool
+                StringInfoValue* v = new StringInfoValue();
                 pool.push_back(v);
 
-                v.stringIndex = readU2(in);
+                v->stringIndex = readU2(in);
             }
             break;
 
             // skipping these values
             case CONSTANT_INTEGER:
-            //cout << "Integer Info" << endl;
+            //std::cout << "Integer Info" << std::endl;
             case CONSTANT_FLOAT:
-            //cout << "Float Info" << endl;
-                pool.push_back(PoolValue(type));
+            //std::cout << "Float Info" << std::endl;
+                pool.push_back(new PoolValue(type));
 
                 readU4(in);
                 break;
 
             // skipping these values
             case CONSTANT_LONG:
-            //cout << "Long Info" << endl;
+            //std::cout << "Long Info" << std::endl;
             case CONSTANT_DOUBLE:
-            //cout << "Double Info" << endl;
-                pool.push_back(PoolValue(type));
+            //std::cout << "Double Info" << std::endl;
+                pool.push_back(new PoolValue(type));
 
                 readU4(in);
                 readU4(in);
                 break;
 
             case CONSTANT_UTF8: {
-            //cout << "UTF8" << endl;
-                Utf8Value v = Utf8Value();
+            //std::cout << "UTF8" << std::endl;
+                Utf8Value* v = new Utf8Value();
                 pool.push_back(v);
 
-                v.value = readUtf(in);
+                v->value = readUtf(in);
 
-                //cout << "UTF8: " << v.value;
+                //std::cout << "UTF8: " << v.value;
             }
             break;
 
             default:
-                cout << "Unknown type: " << type << endl;
+                std::cout << "Unknown type: " << type << std::endl;
                 // dont' know what it is, things will go badly after this
-                cerr << "reached unknown data in constant pool. We should quit now." << endl;
+                std::cerr << "reached unknown data in constant pool. We should quit now." << std::endl;
                 break;
             }
 
-            //cout << endl;
+            //std::cout << std::endl;
         }    
 
     return pool.size();
 }
 
-void ClassParser::readVersion(istream& in, string& version)
+
+void ClassParser::readVersion(std::istream& in)
 {
     unsigned int major = 0;
     unsigned int minor = 0;
@@ -211,15 +243,15 @@ void ClassParser::readVersion(istream& in, string& version)
     major = major | t;
 
 
-    stringstream ss;
+    std::stringstream ss;
 
     ss << major << "." << minor;
 
-    version.append(ss.str());
-    
+    this->version = ss.str();
 }
 
-bool ClassParser::testSig(istream& in) 
+
+bool ClassParser::testSig(std::istream& in) 
 {
     if (in.get() == 0xCA
             && in.get() == 0xFE
@@ -229,4 +261,13 @@ bool ClassParser::testSig(istream& in)
     }
 
     return false;
+}
+
+void ClassParser::parseAll(std::istream& in) 
+{
+    readVersion(in);
+    readConstantPool(in);
+    readAccessFlags(in);
+    this->className = readClassName(in);
+    this->superClassName = readSuperClassName(in);
 }

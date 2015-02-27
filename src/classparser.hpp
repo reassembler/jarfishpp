@@ -2,9 +2,6 @@
 #include <vector>
 #include <string>
 
-using namespace std;
-
-
 
 const int CONSTANT_UTF8 = 1;
 const int CONSTANT_INTEGER = 3;
@@ -37,7 +34,7 @@ class PoolValue {
 
 class Utf8Value : public PoolValue {
     public:
-        string value;
+        std::string value;
 
         Utf8Value() : PoolValue(CONSTANT_UTF8) {};
 };
@@ -68,7 +65,6 @@ class StringInfoValue : public PoolValue {
 };
 
 
-
 // CONSTANT_Integer_info
 class IntegerValue : public PoolValue {
     public:
@@ -78,18 +74,28 @@ class IntegerValue : public PoolValue {
 
 
 
-
 class ClassParser {
     private:
-        vector<PoolValue> pool;
+        std::vector<PoolValue*> pool;
+        PoolValue* getPoolValue(int);
 
     public:
-        bool testSig(istream& in);
-        void readVersion(istream& in, string& version);
-        int readConstantPool(istream& in);
-        int readAccessFlags(istream& in) { 
+        std::string version;
+        std::string className;
+        std::string superClassName;
+
+        bool testSig(std::istream& in);
+        void readVersion(std::istream& in);
+        int readConstantPool(std::istream& in);
+        int readAccessFlags(std::istream& in) { 
             in.get();
             in.get();
         }
-        string readClassName(istream& in);
+
+        std::string readClassName(std::istream&);
+        std::string readSuperClassName(std::istream&);
+
+        void parseAll(std::istream&);
+
+        ~ClassParser();
 };

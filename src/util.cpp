@@ -108,7 +108,6 @@ bool Util::isArchive(string path)
 
 void Util::searchArchive(string fileName) 
 {
-    int i, sort_iter;
     mz_bool status;
     size_t uncomp_size;
     mz_zip_archive zip_archive;
@@ -125,7 +124,7 @@ void Util::searchArchive(string fileName)
         bool emitFileName = true;
         int fileCount = (int) mz_zip_reader_get_num_files(&zip_archive);
 
-        for (i = 0; i < fileCount; i++) {
+        for (int i = 0; i < fileCount; i++) {
             mz_zip_archive_file_stat file_stat;
 
             if (!mz_zip_reader_file_stat(&zip_archive, i, &file_stat)) {
