@@ -64,8 +64,6 @@ std::string readUtf(std::istream& in) {
 
 
 ClassParser::~ClassParser() {
-    std::cout << "delete\n";
-
     int n = pool.size();
 
     for (int i = 0; i < n; i++) {
