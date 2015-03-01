@@ -5,6 +5,7 @@
 #include <dirent.h>
 #include <sys/stat.h>
 #include <errno.h>
+#include <time.h>
 
 #include "util.hpp"
 
@@ -86,11 +87,17 @@ int main(int argc, char* argv[])
     }
 
 
+    clock_t start = clock();
+
     util.scan(paths);
+
+    double elapsed = clock() - start;
+    elapsed = elapsed / CLOCKS_PER_SEC * 1000;
 
     if (showStats) {
         cout << "archives scanned: " << util.archivesScanned << endl;
         cout << "archive files tested: " << util.entriesTested << endl;
+        cout << "Total elapsed time: " << elapsed << "ms" << endl;
     }
 
     if (util.hitCount() == 0) {

@@ -25,6 +25,11 @@
 
 #define CHUNK 16384
 
+//#define TIMER
+
+#ifdef TIMER
+double totalLoadParse = 0;
+#endif
 
 bool Util::isDirectory(std::string path) 
 {
@@ -148,10 +153,10 @@ void Util::searchArchive(std::string fileName)
     status = mz_zip_reader_init_file(&zip_archive, fileName.c_str(), 0);
 
     if (status) {
-        bool emitFileName = true;
         int fileCount = (int) mz_zip_reader_get_num_files(&zip_archive);
 
         for (int i = 0; i < fileCount; i++) {
+            bool emitFileName = true;
             entriesTested++;
 
             mz_zip_archive_file_stat file_stat;
@@ -173,6 +178,9 @@ void Util::searchArchive(std::string fileName)
                     // parse the class file for internal class info
                     size_t uncompressed_size = file_stat.m_uncomp_size;
 
+#ifdef TIMER
+    clock_t start = clock();
+#endif
                     void* p = mz_zip_reader_extract_file_to_heap(&zip_archive, file_stat.m_filename, &uncompressed_size, 0);
                     if (!p) {
                         std::cout << "mz_zip_reader_extract_file_to_heap() failed..." << std::endl;
@@ -189,6 +197,13 @@ void Util::searchArchive(std::string fileName)
                     if (parser.testSig(iss)) {
                         parser.parseAll(iss);
 
+#ifdef TIMER
+    double elapsed = (clock() - start);
+
+    elapsed = elapsed / CLOCKS_PER_SEC * 1000;
+
+    totalLoadParse += elapsed;
+#endif
                         if (searchStrings) {
                             std::vector<std::string> poolStrings = parser.getPoolStrings();
                             
@@ -298,4 +313,8 @@ void Util::scan(std::vector<std::string> paths)
     for (std::vector<std::string>::iterator it = paths.begin(); it != paths.end(); ++it) {
         listDirectory(*it);
     }
+
+#ifdef TIMER
+    std::cout << "Total load/parse time: " << totalLoadParse << "ms" << endl;
+#endif
 }
