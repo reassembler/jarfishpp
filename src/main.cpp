@@ -7,6 +7,8 @@
 #include <errno.h>
 #include <time.h>
 
+const std::string VERSION = "1.0";
+
 #include "util.hpp"
 
 #include "usage.cpp"
@@ -16,6 +18,7 @@
 
 
 using namespace std;
+
 
 
 int main(int argc, char* argv[]) 

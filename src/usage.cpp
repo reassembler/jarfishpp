@@ -4,6 +4,8 @@ using namespace std;
 
 
 void show_usage(const char * errorMessage) {
+    cout << "jarfish " << VERSION << endl;
+
     if (errorMessage != NULL) {
         cerr << "Error: " << errorMessage << endl;
     }

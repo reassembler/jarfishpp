@@ -274,7 +274,7 @@ void Util::searchArchive(std::string fileName)
         mz_zip_reader_end(&zip_archive);
     }
     else {
-        std::cout << "could not open archive: " << fileName << std::endl;
+        std::cerr << "could not open archive: " << fileName << std::endl;
     }
 }
 
