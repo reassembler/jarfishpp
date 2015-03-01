@@ -92,6 +92,8 @@ class ClassParser {
             in.get();
         }
 
+        std::vector<std::string> getPoolStrings();
+
         std::string readClassName(std::istream&);
         std::string readSuperClassName(std::istream&);
 

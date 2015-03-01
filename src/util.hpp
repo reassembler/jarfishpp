@@ -29,9 +29,25 @@ class Util {
 
       vector<Hit> hits;
 
+      bool searchInternal;
+      bool searchStrings;
 
     public:
       vector<string> extensions;
+
+      void setSearchInternal(bool b) {
+          this->searchInternal = true;
+      }
+
+      void setSearchStrings(bool b) {
+          this->searchStrings = b;
+      }
+
+      Util() {
+          searchInternal = false;
+          searchStrings = false;
+          extensions.push_back(".jar");
+      }
 
       int hitCount() {
           return hits.size();
@@ -48,9 +64,6 @@ class Util {
           return queries.size() > 0;
       }    
 
-      Util() {
-          extensions.push_back(".jar");
-      }
 };
 
 #endif

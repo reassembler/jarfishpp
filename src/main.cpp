@@ -27,14 +27,33 @@ int main(int argc, char* argv[])
     for (int i = 1; i < argc; i++) {
         string arg = string(argv[i]);
 
-        if (string(argv[i]) == "--findc") {
+        if (string(argv[i]) == "--internal") {
+            util.setSearchInternal(true);
+        }
+        else if (string(argv[i]) == "--finds") {
+            util.setSearchStrings(true);
+
+            if ((i + 1) < argc) {
+                util.addQuery(argv[i + 1]);
+                i++;
+            }
+            else {
+                show_usage("'finds' command requires at least one argument.");
+
+                return 1;
+
+                // EARLY OUT
+            }
+
+        }
+        else if (string(argv[i]) == "--findc") {
             if ((i + 1) < argc) {
                 util.addQuery(argv[i + 1]);
                 i++;
             }
             else {
                 
-                show_usage("'find' command requires at least one argument.");
+                show_usage("'findc' command requires at least one argument.");
 
                 return 1;
 

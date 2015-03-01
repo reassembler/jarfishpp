@@ -16,6 +16,10 @@ void show_usage(const char * errorMessage) {
     cout << "                             Person" << endl;
     cout << "                             org/assembler/Person" << endl;
     cout << "---------------------------------------------------------" << endl;
+    cout << "--finds     Find a String    String to find               Yes " << endl;
+    cout << "             inside the      Daisy" << endl;
+    cout << "             class file      Hello, World!" << endl;
+    cout << "---------------------------------------------------------" << endl;
     cout << endl;
 
     cout << "Options" << endl;

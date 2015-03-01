@@ -79,6 +79,21 @@ PoolValue* ClassParser::getPoolValue(int i)
     return pool.at(i - 1);
 }
 
+std::vector<std::string> ClassParser::getPoolStrings() 
+{
+    std::vector<std::string> strings;
+
+    int cpSize = pool.size();
+    for (int i = 0; i < cpSize; i++) {
+        Utf8Value* s = dynamic_cast<Utf8Value*>(pool[i]);
+
+        if (s != NULL) {
+            strings.push_back(s->value);
+        }
+    }
+
+    return strings;
+}
 
 std::string ClassParser::readClassName(std::istream& in)
 {
@@ -110,30 +125,74 @@ std::string ClassParser::readSuperClassName(std::istream& in)
 
     int poolIndex = readU2(in);
 
-    PoolValue *pv = getPoolValue(poolIndex);
+    // not all classes have a super class
+    if (poolIndex > 0) {
+        PoolValue *pv = getPoolValue(poolIndex);
 
-    ClassValue* cv = dynamic_cast<ClassValue*>(pv);
+        ClassValue* cv = dynamic_cast<ClassValue*>(pv);
 
-    if (cv != NULL) {
-        int i = cv->nameIndex;
-    
-        Utf8Value* name = dynamic_cast<Utf8Value*>(getPoolValue(i));
+        if (cv != NULL) {
+            int i = cv->nameIndex;
+        
+            Utf8Value* name = dynamic_cast<Utf8Value*>(getPoolValue(i));
 
-        if (name != NULL) {
-            cname = name->value;
+            if (name != NULL) {
+                cname = name->value;
+            }
         }
     }
 
     return cname;
 }
 
+std::string getTypeName(int type) {
+    switch (type) {
+    case CONSTANT_CLASS: 
+        return "Constant Class";
+
+    case CONSTANT_FIELD_REF:
+        return "Constant Field Ref";
+
+    case CONSTANT_METHOD_REF:
+        return "Method Ref";
+
+    case CONSTANT_INTERFACE_METHOD_REF:
+        return "Interface Method Ref";
+
+    case CONSTANT_NAME_AND_TYPE: 
+        return "Name And Type";
+        
+    case CONSTANT_STRING_INFO: 
+        return "String Info";
+    
+    case CONSTANT_INTEGER:
+        return "Integer Info";
+
+    case CONSTANT_FLOAT:
+        return "Float Info";
+
+    case CONSTANT_LONG:
+        return "Long Info";
+
+    case CONSTANT_DOUBLE:
+        return "Double Info";
+
+    case CONSTANT_UTF8:
+        return "UTF8";
+    }
+
+    return "unknown";
+}
 
 int ClassParser::readConstantPool(std::istream& in) 
 {
         int cpSize = readU2(in) - 1;
 
         for (int i = 0; i < cpSize; i++) {
+            //std::cout << "cpIndex: " << (i + 1) << "/" << cpSize << " ";
             int type = in.get();
+
+            //std::cout << getTypeName(type) << std::endl;
 
             switch (type) {
 
@@ -147,13 +206,9 @@ int ClassParser::readConstantPool(std::istream& in)
             break;
 
             case CONSTANT_FIELD_REF:
-            //std::cout << "Field Ref" << std::endl;
             case CONSTANT_METHOD_REF:
-            //std::cout << "Method Ref" << std::endl;
             case CONSTANT_INTERFACE_METHOD_REF:
-            //std::cout << "Interface Method Ref" << std::endl;
             case CONSTANT_NAME_AND_TYPE: {
-            //std::cout << "Name And Type" << std::endl;
                 RefValue* v = new RefValue(type);
                 pool.push_back(v);
                 v->classIndex = readU2(in);
@@ -162,8 +217,6 @@ int ClassParser::readConstantPool(std::istream& in)
             break;
 
             case CONSTANT_STRING_INFO: {
-            //std::cout << "String Info" << std::endl;
-                // index of std::string in constant pool
                 StringInfoValue* v = new StringInfoValue();
                 pool.push_back(v);
 
@@ -171,46 +224,45 @@ int ClassParser::readConstantPool(std::istream& in)
             }
             break;
 
-            // skipping these values
             case CONSTANT_INTEGER:
-            //std::cout << "Integer Info" << std::endl;
             case CONSTANT_FLOAT:
-            //std::cout << "Float Info" << std::endl;
                 pool.push_back(new PoolValue(type));
 
                 readU4(in);
                 break;
 
-            // skipping these values
+            // the following two constant pool types take
+            // up 2 slots in the constant pool. How fucking
+            // shitty is that. Which means we need to add a phantom 
+            // entry into the constant pool every time we find one of
+            // these.
             case CONSTANT_LONG:
-            //std::cout << "Long Info" << std::endl;
             case CONSTANT_DOUBLE:
-            //std::cout << "Double Info" << std::endl;
+                pool.push_back(new PoolValue(type));
+
+                // add ridiculous phantom entry
                 pool.push_back(new PoolValue(type));
 
                 readU4(in);
                 readU4(in);
+
+                // increase the index because of phantom. Once again SHITTY
+                i++;
                 break;
 
             case CONSTANT_UTF8: {
-            //std::cout << "UTF8" << std::endl;
                 Utf8Value* v = new Utf8Value();
                 pool.push_back(v);
 
                 v->value = readUtf(in);
-
-                //std::cout << "UTF8: " << v.value;
             }
             break;
 
             default:
-                std::cout << "Unknown type: " << type << std::endl;
-                // dont' know what it is, things will go badly after this
+                std::cerr << "Unknown type: " << type << std::endl;
                 std::cerr << "reached unknown data in constant pool. We should quit now." << std::endl;
                 break;
             }
-
-            //std::cout << std::endl;
         }    
 
     return pool.size();

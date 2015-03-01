@@ -1,5 +1,6 @@
-#include <vector>
-#include <string>
+#include <std::vector>
+#include <std::string>
+#include <sstream>
 
 #include <stdio.h>
 #include <dirent.h>
@@ -8,8 +9,9 @@
 
 #include "util.hpp"
 
-#include "miniz.c"
+#include "classparser.hpp"
 
+#include "miniz.c"
 
 
 #if defined(MSDOS) || defined(OS2) || defined(WIN32) || defined(__CYGWIN__)
@@ -24,10 +26,7 @@
 #define CHUNK 16384
 
 
-using namespace std;
-
-
-bool Util::isDirectory(string path) 
+bool Util::isDirectory(std::string path) 
 {
     struct stat fileInfo;
 
@@ -41,7 +40,7 @@ bool Util::isDirectory(string path)
     }
 }
 
-bool endsWith(string s, string test)
+bool endsWith(std::string s, std::string test)
 {
     if (s.length() >= test.length()) {
         if (s.compare(s.length() - test.length(), test.length(), test) == 0) {
@@ -52,8 +51,8 @@ bool endsWith(string s, string test)
     return false;
 }
 
-string normalizeClassName(string fileName) {
-    string str = "";
+std::string normalizeClassName(std::string fileName) {
+    std::string str = "";
 
     for(int i = 0; i < fileName.size(); i++) {
         const char ch = fileName[i];
@@ -70,18 +69,40 @@ string normalizeClassName(string fileName) {
     
 }
 
-vector<Hit> Util::matchesQuery(string test)
-{
-    vector<Hit> hits;
 
-    string normalName = normalizeClassName(test);
+std::std::vector<Hit> findMatches(std::std::vector<std::string> queries, std::std::vector<std::string> tests) {
+    std::std::vector<Hit> hits;
+
+    for (std::vector<std::string>::iterator it = queries.begin(); it != queries.end(); ++it) {
+        std::string query = *it;
+
+        for (std::vector<std::string>::iterator sit = tests.begin(); sit != tests.end(); ++sit) {
+            std::string test = *sit;
+
+            if (test.find(query) != std::string::npos) {
+                hits.push_back(Hit());
+
+                hits.back().name = test;
+            }    
+        }
+    }
+
+
+    return hits;
+}
+
+std::vector<Hit> Util::matchesQuery(std::string test)
+{
+    std::vector<Hit> hits;
+
+    std::string normalName = normalizeClassName(test);
 
     bool checkNormalized = normalName != test;
 
-    for (vector<string>::iterator it = queries.begin(); it != queries.end(); ++it) {
-        string query = *it;
-        if (test.find(query) != string::npos
-                || (checkNormalized && normalName.find(query) != string::npos)) {
+    for (std::vector<std::string>::iterator it = queries.begin(); it != queries.end(); ++it) {
+        std::string query = *it;
+        if (test.find(query) != std::string::npos
+                || (checkNormalized && normalName.find(query) != std::string::npos)) {
             hits.push_back(Hit());
 
             hits.back().name = test;
@@ -92,10 +113,10 @@ vector<Hit> Util::matchesQuery(string test)
 }
 
 
-bool Util::isArchive(string path)
+bool Util::isArchive(std::string path)
 {
-    for (vector<string>::iterator it = extensions.begin(); it != extensions.end(); ++it) {
-        string ext = *it;
+    for (std::vector<std::string>::iterator it = extensions.begin(); it != extensions.end(); ++it) {
+        std::string ext = *it;
 
         if (endsWith(path, ext)) {
             return true;
@@ -106,8 +127,12 @@ bool Util::isArchive(string path)
 }
 
 
-void Util::searchArchive(string fileName) 
+void Util::searchArchive(std::string fileName) 
 {
+#ifdef DEBUGU
+    std::cout << fileName << std::endl;
+#endif
+
     mz_bool status;
     size_t uncomp_size;
     mz_zip_archive zip_archive;
@@ -129,15 +154,87 @@ void Util::searchArchive(string fileName)
 
             if (!mz_zip_reader_file_stat(&zip_archive, i, &file_stat)) {
                 printf("mz_zip_reader_file_stat() failed!\n");
-                mz_zip_reader_end(&zip_archive);
+
+                 // something went wrong while reading the file, just leave
+                 break;
             }
 
-            string entryName = string(file_stat.m_filename);
+            std::string entryName = std::string(file_stat.m_filename);
 
             if (endsWith(entryName, ".class")) {
-                vector<Hit> hits = matchesQuery(entryName);
+#ifdef DEBUGU
+                std::cout << entryName << std::endl;
+#endif
+                if (searchStrings || searchInternal) {
+                    // parse the class file for internal class info
+                    size_t uncompressed_size = file_stat.m_uncomp_size;
 
-                if (hits.size() > 0) {
+                    void* p = mz_zip_reader_extract_file_to_heap(&zip_archive, file_stat.m_filename, &uncompressed_size, 0);
+                    if (!p) {
+                        std::cout << "mz_zip_reader_extract_file_to_heap() failed..." << std::endl;
+                        mz_zip_reader_end(&zip_archive);
+                        return;
+                    }
+
+                    std::string str_unzip;
+                    str_unzip.assign((const char*)p,uncompressed_size);
+                    istd::stringstream iss(str_unzip);
+
+                    ClassParser parser = ClassParser();
+
+                    if (parser.testSig(iss)) {
+                        parser.parseAll(iss);
+
+                        if (searchStrings) {
+                            std::std::vector<std::std::string> poolStrings = parser.getPoolStrings();
+                            
+                            std::std::vector<Hit> hits = findMatches(this->queries, poolStrings);
+
+                            for (int i = 0; i < hits.size(); i++) {
+                                hits[i].context = fileName + " -> " + entryName;
+
+                                this->hits.push_back(hits[i]);
+
+                                if (emitFileName) {
+                                    // only show the file name once per file
+                                    std::cout << hits[i].context << std::endl;
+
+                                    emitFileName = false;
+                                }
+
+                                std::cout << "    " << hits[i].name << std::endl;
+                            }
+                        }
+                        else {
+                            // search for the internal class name
+                            std::vector<Hit> hits = matchesQuery(parser.className);
+                            for (int i = 0; i < hits.size(); i++) {
+                                hits[i].context = fileName;
+
+                                this->hits.push_back(hits[i]);
+
+                                if (emitFileName) {
+                                    // only show the file name once per file
+                                    std::cout << hits[i].context << std::endl;
+
+                                    emitFileName = false;
+                                }
+
+                                std::cout << "    " << hits[i].name << std::endl;
+                            }
+                        }
+     
+                    }
+                    else {
+                        std::cout << "sig failed" << std::endl;
+                    }
+
+                    mz_free(p);
+                }
+                else {
+                    // just search the class file name
+                    std::vector<Hit> hits = matchesQuery(entryName);
+
                     for (int i = 0; i < hits.size(); i++) {
                         hits[i].context = fileName;
 
@@ -145,25 +242,26 @@ void Util::searchArchive(string fileName)
 
                         if (emitFileName) {
                             // only show the file name once per file
-                            cout << hits[i].context << endl;
+                            std::cout << hits[i].context << std::endl;
 
                             emitFileName = false;
                         }
 
-                        cout << "    " << hits[i].name << endl;
+                        std::cout << "    " << hits[i].name << std::endl;
                     }
                 }
+
             }
         }
 
         mz_zip_reader_end(&zip_archive);
     }
     else {
-        cout << "could not open archive: " << fileName << endl;
+        std::cout << "could not open archive: " << fileName << std::endl;
     }
 }
 
-void Util::listDirectory(string path) 
+void Util::listDirectory(std::string path) 
 {
     DIR *dp;
     struct dirent *dirp;
@@ -172,8 +270,8 @@ void Util::listDirectory(string path)
 
     if (dp != NULL) {
         while ((dirp = readdir(dp)) != NULL) {
-            if (dirp->d_name != string(".") && dirp->d_name != string("..")) {
-                string searchPath = path + kPathSeparator + dirp->d_name;
+            if (dirp->d_name != std::string(".") && dirp->d_name != std::string("..")) {
+                std::string searchPath = path + kPathSeparator + dirp->d_name;
 
                 if (isDirectory(searchPath) == true) {
                     listDirectory(searchPath);
@@ -187,15 +285,15 @@ void Util::listDirectory(string path)
         closedir(dp);
     }
     else {
-        cerr << "Couldn't open dir: '" << path << "' error: " << strerror(errno) << endl;
+        cerr << "Couldn't open dir: '" << path << "' error: " << strerror(errno) << std::endl;
     }
 }
 
 
-void Util::scan(vector<string> paths) 
+void Util::scan(std::vector<std::string> paths) 
 {
-    cout << "scanning..." << endl;
-    for (vector<string>::iterator it = paths.begin(); it != paths.end(); ++it) {
+    std::cout << "scanning..." << std::endl;
+    for (std::vector<std::string>::iterator it = paths.begin(); it != paths.end(); ++it) {
         listDirectory(*it);
     }
 }
