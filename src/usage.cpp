@@ -39,6 +39,9 @@ void show_usage(const char * errorMessage) {
     cout << "  Look inside the class file for the class name instead of depending on the file name and path." << endl;
     cout << "  e.g. --internal" << endl;
     cout << "  Note: This will make searches take much longer." << endl;
+
+    cout << "--showStats - No arguments" << endl;
+    cout << "  Show scan stats at end of search." << endl;
     cout << endl;
 
 }

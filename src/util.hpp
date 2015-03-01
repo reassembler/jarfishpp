@@ -33,6 +33,9 @@ class Util {
       bool searchStrings;
 
     public:
+      unsigned int archivesScanned;
+      unsigned int entriesTested;
+
       vector<string> extensions;
 
       void setSearchInternal(bool b) {
@@ -47,6 +50,9 @@ class Util {
           searchInternal = false;
           searchStrings = false;
           extensions.push_back(".jar");
+
+          archivesScanned = 0;
+          entriesTested = 0;
       }
 
       int hitCount() {

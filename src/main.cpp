@@ -22,6 +22,8 @@ int main(int argc, char* argv[])
     vector <string> paths;
     string destination;
 
+    bool showStats = false;
+
     Util util = Util();
 
     for (int i = 1; i < argc; i++) {
@@ -29,6 +31,9 @@ int main(int argc, char* argv[])
 
         if (string(argv[i]) == "--internal") {
             util.setSearchInternal(true);
+        }
+        else if (string(argv[i]) == "--showStats") {
+            showStats = true;
         }
         else if (string(argv[i]) == "--finds") {
             util.setSearchStrings(true);
@@ -82,6 +87,11 @@ int main(int argc, char* argv[])
 
 
     util.scan(paths);
+
+    if (showStats) {
+        cout << "archives scanned: " << util.archivesScanned << endl;
+        cout << "archive files tested: " << util.entriesTested << endl;
+    }
 
     if (util.hitCount() == 0) {
         cout << "Nothing found" << endl;

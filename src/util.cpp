@@ -1,5 +1,5 @@
-#include <std::vector>
-#include <std::string>
+#include <vector>
+#include <string>
 #include <sstream>
 
 #include <stdio.h>
@@ -70,8 +70,8 @@ std::string normalizeClassName(std::string fileName) {
 }
 
 
-std::std::vector<Hit> findMatches(std::std::vector<std::string> queries, std::std::vector<std::string> tests) {
-    std::std::vector<Hit> hits;
+std::vector<Hit> findMatches(std::vector<std::string> queries, std::vector<std::string> tests) {
+    std::vector<Hit> hits;
 
     for (std::vector<std::string>::iterator it = queries.begin(); it != queries.end(); ++it) {
         std::string query = *it;
@@ -133,6 +133,8 @@ void Util::searchArchive(std::string fileName)
     std::cout << fileName << std::endl;
 #endif
 
+    archivesScanned++;
+
     mz_bool status;
     size_t uncomp_size;
     mz_zip_archive zip_archive;
@@ -150,6 +152,8 @@ void Util::searchArchive(std::string fileName)
         int fileCount = (int) mz_zip_reader_get_num_files(&zip_archive);
 
         for (int i = 0; i < fileCount; i++) {
+            entriesTested++;
+
             mz_zip_archive_file_stat file_stat;
 
             if (!mz_zip_reader_file_stat(&zip_archive, i, &file_stat)) {
@@ -178,7 +182,7 @@ void Util::searchArchive(std::string fileName)
 
                     std::string str_unzip;
                     str_unzip.assign((const char*)p,uncompressed_size);
-                    istd::stringstream iss(str_unzip);
+                    stringstream iss(str_unzip);
 
                     ClassParser parser = ClassParser();
 
@@ -186,9 +190,9 @@ void Util::searchArchive(std::string fileName)
                         parser.parseAll(iss);
 
                         if (searchStrings) {
-                            std::std::vector<std::std::string> poolStrings = parser.getPoolStrings();
+                            std::vector<std::string> poolStrings = parser.getPoolStrings();
                             
-                            std::std::vector<Hit> hits = findMatches(this->queries, poolStrings);
+                            std::vector<Hit> hits = findMatches(this->queries, poolStrings);
 
                             for (int i = 0; i < hits.size(); i++) {
                                 hits[i].context = fileName + " -> " + entryName;
@@ -223,7 +227,6 @@ void Util::searchArchive(std::string fileName)
                                 std::cout << "    " << hits[i].name << std::endl;
                             }
                         }
-     
                     }
                     else {
                         std::cout << "sig failed" << std::endl;
@@ -250,7 +253,6 @@ void Util::searchArchive(std::string fileName)
                         std::cout << "    " << hits[i].name << std::endl;
                     }
                 }
-
             }
         }
 
