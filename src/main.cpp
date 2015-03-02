@@ -7,7 +7,7 @@
 #include <errno.h>
 #include <time.h>
 
-const std::string VERSION = "1.0";
+const std::string VERSION = "1.0.1";
 
 #include "util.hpp"
 

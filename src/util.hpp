@@ -15,7 +15,6 @@ const char kPathSeparator =
 #endif
 
 
-
 using namespace std;
 
 class Util {
