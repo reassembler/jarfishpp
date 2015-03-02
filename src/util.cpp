@@ -71,9 +71,7 @@ std::string normalizeClassName(std::string fileName) {
     }
 
     return str;
-    
 }
-
 
 std::vector<Hit> findMatches(std::vector<std::string> queries, std::vector<std::string> tests) {
     std::vector<Hit> hits;
@@ -91,7 +89,6 @@ std::vector<Hit> findMatches(std::vector<std::string> queries, std::vector<std::
             }    
         }
     }
-
 
     return hits;
 }
@@ -129,6 +126,32 @@ bool Util::isArchive(std::string path)
     }
 
     return false;
+}
+
+std::vector<Hit> Util::searchClass(std::istream& in) 
+{
+    std::vector<Hit> hits;
+
+    ClassParser parser = ClassParser();
+
+    if (parser.testSig(in)) {
+        parser.parseAll(in);
+
+        if (searchStrings) {
+            std::vector<std::string> poolStrings = parser.getPoolStrings();
+            
+            hits = findMatches(this->queries, poolStrings);
+        }
+        else {
+            // search for the internal class name
+            hits = matchesQuery(parser.className);
+        }
+    }
+    else {
+        std::cout << "sig failed" << std::endl;
+    }
+
+    return hits;
 }
 
 
@@ -174,95 +197,53 @@ void Util::searchArchive(std::string fileName)
 #ifdef DEBUGU
                 std::cout << entryName << std::endl;
 #endif
-                if (searchStrings || searchInternal) {
-                    // parse the class file for internal class info
-                    size_t uncompressed_size = file_stat.m_uncomp_size;
 
-#ifdef TIMER
-    clock_t start = clock();
-#endif
+                std::vector<Hit> hits;
+                std::string context = fileName;
+
+                if (searchStrings || searchInternal) {
+                    context.append(" -> ");
+                    context.append(entryName);
+                    
+                    // load class file into memory for parsing
+                    size_t uncompressed_size = file_stat.m_uncomp_size;
                     void* p = mz_zip_reader_extract_file_to_heap(&zip_archive, file_stat.m_filename, &uncompressed_size, 0);
                     if (!p) {
-                        std::cout << "mz_zip_reader_extract_file_to_heap() failed..." << std::endl;
+                        std::cerr << "mz_zip_reader_extract_file_to_heap() failed..." << std::endl;
                         mz_zip_reader_end(&zip_archive);
                         return;
+
+                        // EARLY OUT
                     }
 
                     std::string str_unzip;
-                    str_unzip.assign((const char*)p,uncompressed_size);
+                    str_unzip.assign((const char*) p,uncompressed_size);
+
                     stringstream iss(str_unzip);
 
-                    ClassParser parser = ClassParser();
-
-                    if (parser.testSig(iss)) {
-                        parser.parseAll(iss);
-
-#ifdef TIMER
-    double elapsed = (clock() - start);
-
-    elapsed = elapsed / CLOCKS_PER_SEC * 1000;
-
-    totalLoadParse += elapsed;
-#endif
-                        if (searchStrings) {
-                            std::vector<std::string> poolStrings = parser.getPoolStrings();
-                            
-                            std::vector<Hit> hits = findMatches(this->queries, poolStrings);
-
-                            for (int i = 0; i < hits.size(); i++) {
-                                hits[i].context = fileName + " -> " + entryName;
-
-                                this->hits.push_back(hits[i]);
-
-                                if (emitFileName) {
-                                    // only show the file name once per file
-                                    std::cout << hits[i].context << std::endl;
-
-                                    emitFileName = false;
-                                }
-
-                                std::cout << "    " << hits[i].name << std::endl;
-                            }
-                        }
-                        else {
-                            // search for the internal class name
-                            std::vector<Hit> hits = matchesQuery(parser.className);
-                            for (int i = 0; i < hits.size(); i++) {
-                                hits[i].context = fileName;
-
-                                this->hits.push_back(hits[i]);
-
-                                if (emitFileName) {
-                                    // only show the file name once per file
-                                    std::cout << hits[i].context << std::endl;
-
-                                    emitFileName = false;
-                                }
-
-                                std::cout << "    " << hits[i].name << std::endl;
-                            }
-                        }
-                    }
-                    else {
-                        std::cout << "sig failed" << std::endl;
-                    }
+                    hits = searchClass(iss);
 
                     mz_free(p);
                 }
                 else {
                     // just search the class file name
-                    std::vector<Hit> hits = matchesQuery(entryName);
+                    hits = matchesQuery(entryName);
+                }
+
+                // deal with any hits we made
+                if (hits.size() > 0) {
+                    bool emitContext = true;
 
                     for (int i = 0; i < hits.size(); i++) {
-                        hits[i].context = fileName;
+                        hits[i].context = context;
 
                         this->hits.push_back(hits[i]);
 
-                        if (emitFileName) {
+                        if (emitContext) {
                             // only show the file name once per file
                             std::cout << hits[i].context << std::endl;
 
-                            emitFileName = false;
+                            emitContext = false;
                         }
 
                         std::cout << "    " << hits[i].name << std::endl;
@@ -280,10 +261,9 @@ void Util::searchArchive(std::string fileName)
 
 void Util::listDirectory(std::string path) 
 {
-    DIR *dp;
     struct dirent *dirp;
 
-    dp = opendir(path.c_str());
+    DIR *dp = opendir(path.c_str());
 
     if (dp != NULL) {
         while ((dirp = readdir(dp)) != NULL) {

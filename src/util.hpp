@@ -32,6 +32,8 @@ class Util {
       bool searchInternal;
       bool searchStrings;
 
+      std::vector<Hit> searchClass(std::istream&);
+
     public:
       unsigned int archivesScanned;
       unsigned int entriesTested;
