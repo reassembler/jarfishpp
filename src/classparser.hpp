@@ -88,8 +88,10 @@ class ClassParser {
         void readVersion(std::istream& in);
         int readConstantPool(std::istream& in);
         int readAccessFlags(std::istream& in) { 
-            in.get();
-            in.get();
+            unsigned int flag = in.get() << 8;
+            flag |= in.get();
+
+            return flag;
         }
 
         std::vector<std::string> getPoolStrings();
