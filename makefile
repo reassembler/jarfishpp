@@ -1,4 +1,7 @@
 compile: 
+	g++ -s src/main.cpp src/util.cpp src/classparser.cpp -o jarfish -Isrc -Isrc-ext
+
+compiledebug: 
 	g++ src/main.cpp src/util.cpp src/classparser.cpp -o jarfish -Isrc -Isrc-ext
 
 timecompile: 
