@@ -27,12 +27,12 @@ class Util {
 
       vector<string> queries;
 
-      vector<Hit> hits;
-
       bool searchInternal;
       bool searchStrings;
 
       std::vector<Hit> searchClass(std::istream&);
+
+      int hits;
 
     public:
       unsigned int archivesScanned;
@@ -49,6 +49,8 @@ class Util {
       }
 
       Util() {
+          hits = 0;
+
           searchInternal = false;
           searchStrings = false;
           extensions.push_back(".jar");
@@ -58,7 +60,7 @@ class Util {
       }
 
       int hitCount() {
-          return hits.size();
+          return hits;
       }    
 
       void listDirectory(std::string path);
@@ -71,7 +73,6 @@ class Util {
       bool hasQuery() {
           return queries.size() > 0;
       }    
-
 };
 
 #endif

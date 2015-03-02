@@ -237,8 +237,6 @@ void Util::searchArchive(std::string fileName)
                     for (int i = 0; i < hits.size(); i++) {
                         hits[i].context = context;
 
-                        this->hits.push_back(hits[i]);
-
                         if (emitContext) {
                             // only show the file name once per file
                             std::cout << hits[i].context << std::endl;
