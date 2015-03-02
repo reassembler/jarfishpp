@@ -232,9 +232,11 @@ void Util::searchArchive(std::string fileName)
 
                 // deal with any hits we made
                 if (hits.size() > 0) {
+                    int n = hits.size();
+
                     bool emitContext = true;
 
-                    for (int i = 0; i < hits.size(); i++) {
+                    for (int i = 0; i < n; i++) {
                         hits[i].context = context;
 
                         if (emitContext) {

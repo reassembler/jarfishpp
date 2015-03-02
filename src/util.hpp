@@ -31,8 +31,6 @@ class Util {
 
       std::vector<Hit> searchClass(std::istream&);
 
-      int hits;
-
     public:
       unsigned int archivesScanned;
       unsigned int entriesTested;
@@ -48,8 +46,6 @@ class Util {
       }
 
       Util() {
-          hits = 0;
-
           searchInternal = false;
           searchStrings = false;
           extensions.push_back(".jar");
@@ -58,9 +54,6 @@ class Util {
           entriesTested = 0;
       }
 
-      int hitCount() {
-          return hits;
-      }    
 
       void listDirectory(std::string path);
       void scan(std::vector<std::string> paths);

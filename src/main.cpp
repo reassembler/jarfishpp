@@ -7,7 +7,7 @@
 #include <errno.h>
 #include <time.h>
 
-const std::string VERSION = "1.0.1";
+const std::string VERSION = "1.0.2";
 
 #include "util.hpp"
 
@@ -101,10 +101,6 @@ int main(int argc, char* argv[])
         cout << "archives scanned: " << util.archivesScanned << endl;
         cout << "archive files tested: " << util.entriesTested << endl;
         cout << "Total elapsed time: " << elapsed << "ms" << endl;
-    }
-
-    if (util.hitCount() == 0) {
-        cout << "Nothing found" << endl;
     }
 
     return 0;
