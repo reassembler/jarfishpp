@@ -32,6 +32,9 @@ int main(int argc, char **argv)
             std::cout << parser.className << std::endl;
             std::cout << parser.superClassName << std::endl;
         }
+        else {
+            std::cout << "Failed to find signature in class file" << std::endl;
+        }
 
         in.close();
     }
