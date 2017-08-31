@@ -18,13 +18,14 @@ const char kPathSeparator =
 using namespace std;
 
 class Util {
-    private: 
+    private:
       bool isArchive(string path);
       bool isDirectory(string path);
       vector<Hit> matchesQuery(string test);
       void searchArchive(string fileName);
 
       vector<string> queries;
+      vector<string> extensions;
 
       bool searchInternal;
       bool searchStrings;
@@ -35,7 +36,9 @@ class Util {
       unsigned int archivesScanned;
       unsigned int entriesTested;
 
-      vector<string> extensions;
+      void addExtension(string ext) {
+          extensions.push_back(ext);
+      }
 
       void setSearchInternal(bool b) {
           this->searchInternal = true;
@@ -64,7 +67,7 @@ class Util {
 
       bool hasQuery() {
           return queries.size() > 0;
-      }    
+      }
 };
 
 #endif
