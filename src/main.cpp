@@ -21,7 +21,7 @@ using namespace std;
 
 
 
-int main(int argc, char* argv[]) 
+int main(int argc, char* argv[])
 {
     vector <string> paths;
     string destination;
@@ -35,6 +35,12 @@ int main(int argc, char* argv[])
 
         if (string(argv[i]) == "--internal") {
             util.setSearchInternal(true);
+        }
+        else if (string(argv[i]) == "--ext") {
+            if ((i + 1) < argc) {
+                util.addExtension(argv[i + 1]);
+                i++;
+            }
         }
         else if (string(argv[i]) == "--showStats") {
             showStats = true;
@@ -61,7 +67,7 @@ int main(int argc, char* argv[])
                 i++;
             }
             else {
-                
+
                 show_usage("'findc' command requires at least one argument.");
 
                 return 1;
@@ -78,7 +84,7 @@ int main(int argc, char* argv[])
         show_usage("At least one query is required.");
 
         return 1;
-        
+
         // EARLY OUT
     }
 
@@ -105,4 +111,3 @@ int main(int argc, char* argv[])
 
     return 0;
 }
-
